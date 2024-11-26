@@ -1,8 +1,5 @@
 from django.contrib import admin
-from tienda.models import Fabricante, Producto, Categoria_Tipo, Categoria_Producto, Categoria_Material
-
-from django.contrib import admin
-from .models import Producto, Categoria_Tipo, Categoria_Producto, Categoria_Material
+from tienda.models import Producto, Categoria_Tipo, Categoria_Producto, Categoria_Material
 
 class ProductoAdmin(admin.ModelAdmin):
     readonly_fields = ('creado', 'actualizado')

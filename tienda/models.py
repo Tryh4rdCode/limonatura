@@ -1,4 +1,3 @@
-#Aqui realizamos la importación de las librerías necesarias
 from django.db import models
 from django.contrib.auth import get_user_model
 from django.core.exceptions import ValidationError
