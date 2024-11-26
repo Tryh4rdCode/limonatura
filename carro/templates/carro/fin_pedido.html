@@ -1,0 +1,133 @@
+<!-- carro/templates/carro/fin_pedido -->
+{% extends 'raiz/base.html' %}
+{% load static %}
+
+{% block title %}Tienda{% endblock %}
+
+{% block content %}
+<link rel="stylesheet" href="{% static 'tienda/css/tienda.css' %}">
+
+<section class="layout">
+  <body>
+    <div class="container py-5">
+      <section class="text-center">
+        <!-- Título de la sección -->
+        <h1>Detalles de tu pedido</h1>
+        <p></p>
+        <p>{{ usuario.first_name }} {{ usuario.last_name }}, Aquí están los detalles de tu pedido:</p>
+   
+        <!-- Tabla de detalles del pedido -->
+        <table class="table table-dark table-striped-columns">
+          <tbody>
+            <tr>
+              <td>Pedido #: {{ pedido.id }} </td> 
+              <td>Fecha: {{ fecha_actual|date:"d/m/Y H:i" }}</td>
+              <td></td>
+            </tr>
+            <tr>
+              <td>Nombre: {{ usuario.first_name }}</td>
+              <td>Apellido: {{ usuario.last_name }} </td>
+              <td></td>
+            </tr>
+            <tr>
+              <td>Dirección: {{ usuario.direccion }}</td>
+              <td>Región: {{ usuario.region }}</td>
+              <td>Comuna: {{ usuario.comuna }}</td>
+            </tr>
+            <tr>
+              <td>Correo: {{ usuario.email }}</td>
+              <td>Teléfono: {{ usuario.telefono }}</td>
+              <td></td>
+            </tr>
+          </tbody>
+        </table>
+
+        <!-- Tabla de productos en el carro -->
+        <table class="table table-dark table-striped-columns">
+          <thead>
+            <tr>
+              <th>Producto</th>
+              <th>Cantidad</th>
+              <th>Precio Unitario</th>
+              <th>Subtotal</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for key, value in request.session.carro.items %}
+            <tr>
+              <td>{{ value.nombre }}</td>
+              <td>{{ value.cantidad }}</td>
+              <td>${{ value.preciounitario }}</td> 
+              <td>${{ value.precio }}</td>
+            </tr>
+            {% endfor %}
+          </tbody>
+          <tfoot>
+            <tr>
+              <td colspan="3" class="text-end"><strong>Total:</strong></td>
+              <td><strong>${{ valor_total_carro }}</strong></td>
+            </tr>
+          </tfoot>
+        </table>
+        <li class="list-group-item d-flex justify-content-between lh-sm">
+          <form action="{% url 'pedidos:create_transaction' %}" method="post">
+            {% csrf_token %}
+            <button type="submit">Pagar</button>
+        </form>
+        </li>
+      </section>
+    </div>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
+  </body>
+
+  <!-- Sección del carro -->
+  <div class="carro">
+    <div class="col-md-5 col-lg-4 order-md-last">
+      <h4 class="d-flex justify-content-between align-items-center mb-3">
+        <span class="text-primary">Your cart</span>
+      </h4>
+    </div>
+      
+    <table class="table table-dark table-hover">
+      <thead>
+        <tr>
+          <th>Producto</th>
+          <th>Cantidad</th>
+          <th>Subtotal</th>
+          <th>+ / -</th>
+        </tr>
+      </thead>
+      <tbody class="table-group-divider">
+        {% if request.session.carro and request.session.carro|length > 0 %}
+          {% for key, value in request.session.carro.items %}
+          <tr>
+            <td>{{ value.nombre }}</td>
+            <td>{{ value.cantidad }}</td>
+            <td>${{ value.precio }}</td>
+            <td>
+              <a href="{% url 'carro:agregar' value.producto_id %}" class="btn btn-sm btn-success">+</a>
+              <a href="{% url 'carro:restar' value.producto_id %}" class="btn btn-sm btn-danger">-</a><br/>
+            </td>
+          </tr>
+          {% endfor %}
+        {% else %}
+        <tr>
+          <td colspan="3">
+            <div class="alert alert-danger text-center">
+              <strong>No hay productos en el carro</strong>
+            </div>
+          </td>
+        </tr>
+        {% endif %}
+      </tbody>
+      <tfoot>
+        <tr>
+          <td colspan="2" class="text-end"><strong>Total:</strong></td>
+          <td><strong>${{ valor_total_carro }}</strong></td>
+        </tr>
+      </tfoot>
+    </table>
+  </div>
+</section>
+
+{% endblock %}
