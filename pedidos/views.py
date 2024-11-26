@@ -77,11 +77,12 @@ def procesar_pedido(request):
         )
         detalle.save()
         detalle_pedido.append(detalle)
+        print(f"Detalle de pedido guardado: {detalle}")
 
     # Calcular el total del pedido
-    total_pedido = sum(detalle.precio for detalle in detalle_pedido)
-    pedido.total = total_pedido
+    pedido.total = sum(item.precio for item in detalle_pedido)
     pedido.save()
+    print(f"Total del pedido calculado y guardado: {pedido.total}")
 
     # Almacenar el ID del pedido en la sesión
     request.session['pedido_id'] = pedido.id
@@ -93,6 +94,7 @@ def procesar_pedido(request):
         usuario=request.user.username,
         emailusuario=request.user.email
     )
+    print("Correo de confirmación enviado")
 
     return redirect('nstienda:confirmar_pedido')
 
@@ -131,12 +133,14 @@ def create_transaction(request):
     # Obtener el total del carro
     carro = Carro(request)
     amount = total_carro = sum(float(item['precio']) for item in carro.carro.values())
+    print(f"Total del carro: {total_carro}")
 
     # Definir la URL de retorno
     return_url = "http://127.0.0.1:8000/pedidos/transaction/commit"
 
     # Crear la transacción con Webpay
     response = transaction.create(buy_order, session_id, amount, return_url)
+    print(f"Transacción creada: {response}")
 
     # Redirigir al usuario a la URL de pago
     return HttpResponseRedirect(f"{response['url']}?token_ws={response['token']}")
@@ -156,6 +160,7 @@ def confirmar_pago(request, token_ws):
 def commit_transaction(request):
     token = request.POST.get("token_ws") or request.GET.get("token_ws")
     if not token:
+        print("Token no encontrado")
         return JsonResponse({"error": "Token no encontrado"}, status=400)
 
     transaction = Transaction(WebpayOptions(
@@ -165,11 +170,13 @@ def commit_transaction(request):
     ))
 
     response = transaction.commit(token)
+    print(f"Respuesta de la transacción: {response}")
 
     if response['status'] == 'AUTHORIZED':
         # Limpiar el carrito después de que la transacción se haya completado con éxito
         carro = Carro(request)
         carro.limpiar_carro()
+        print("Carrito limpiado después de la transacción exitosa")
 
         # Marcar el pedido como finalizado
         pedido_id = request.session.get('pedido_id')
