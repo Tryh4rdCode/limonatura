@@ -20,7 +20,7 @@ class Categoria_Producto(models.Model):
     descripcion = models.CharField(max_length=100)
     codigo = models.CharField(max_length=10, unique=True)
     creado = models.DateTimeField(auto_now_add=True)
-    actualizado = models.DateTimeField(auto_now=True)
+    actualizado = models.DateTimeField(auto_now_add=True)
 
     class Meta:
         verbose_name = 'categoria_prod'
@@ -34,7 +34,7 @@ class Categoria_Tipo(models.Model):
     descripcion = models.CharField(max_length=100)
     codigo = models.CharField(max_length=10, unique=True)
     creado = models.DateTimeField(auto_now_add=True)
-    actualizado = models.DateTimeField(auto_now=True)
+    actualizado = models.DateTimeField(auto_now_add=True)
 
     class Meta:
         verbose_name = 'categoria_tipo'
@@ -48,7 +48,7 @@ class Categoria_Material(models.Model):
     descripcion = models.CharField(max_length=100)
     codigo = models.CharField(max_length=10, unique=True)
     creado = models.DateTimeField(auto_now_add=True)
-    actualizado = models.DateTimeField(auto_now=True)
+    actualizado = models.DateTimeField(auto_now_add=True)
 
     class Meta:
         verbose_name = 'categoria_material'
@@ -86,4 +86,4 @@ class Producto(models.Model):
 @receiver(pre_save, sender=Producto)
 def set_sku(sender, instance, **kwargs):
     if not instance.sku:
-        instance.sku = f"{instance.categorias_producto.codigo}-{instance.categorias_material.codigo}-{instance.categorias_tipo.codigo}-{instance.id or ''}"
+        instance.sku = f"{instance.categorias_prod.codigo}-{instance.categorias_material.codigo}-{instance.categorias_tipo.codigo}-{instance.id or ''}"

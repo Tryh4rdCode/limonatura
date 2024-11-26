@@ -1,8 +1,8 @@
 # pedidos/admin.py en la aplicación pedidos
 from django.contrib import admin
 from .models import Pedido, DetallePedido
-from tienda.models import Fabricante, Producto, Categoria_Coleg, Categoria_Produ, Categoria_Sexo
-from tienda.admin import ProductoAdmin, Categoria_ColegAdmin,Categoria_ProduAdmin,Categoria_SexoAdmin  # Importar ProductoAdmin
+from tienda.models import Fabricante, Producto, Categoria_Tipo, Categoria_Producto, Categoria_Material
+from tienda.admin import ProductoAdmin, Categoria_TipoAdmin, Categoria_ProductoAdmin, Categoria_MaterialAdmin  # Importar ProductoAdmin
 
 class DetallePedidoInline(admin.TabularInline):
     model = DetallePedido
@@ -38,5 +38,4 @@ class FabricanteAdmin(admin.ModelAdmin):
     list_display = ('nombre',)
     search_fields = ('nombre',)
     
-
 admin.site.register(Pedido, PedidoAdmin)
