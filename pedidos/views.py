@@ -121,5 +121,10 @@ def commit_transaction(request):
 
     response = transaction.commit(token)
 
+    if response['status'] == 'AUTHORIZED':
+        # Limpiar el carrito después de que la transacción se haya completado con éxito
+        carro = Carro(request)
+        carro.limpiar_carro()
+
     # Redirigir al usuario a la página de confirmación
     return HttpResponseRedirect(reverse('nstienda:confirmar_pedido'))
