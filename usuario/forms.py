@@ -9,7 +9,6 @@ class FormularioCreacionUsuario(UserCreationForm):
     rut = forms.CharField(
         max_length=9, 
         required=True, 
-        initial="",  # Asignar temporalmente el RUT
         widget=forms.TextInput(attrs={'class': 'form-control'}),
         help_text='Ingrese el RUT sin puntos ni guion. Ejemplo: 12345678K'
     )
@@ -20,38 +19,35 @@ class FormularioCreacionUsuario(UserCreationForm):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.fields['rut'].label = 'RUT'
-        self.fields['nombre'].label = 'Nombre'
-        self.fields['apellido'].label = 'Apellido'
-        self.fields['email'].label = 'Correo electrónico'
-        self.fields['password1'].label = 'Contraseña'
-        self.fields['password2'].label = 'Confirmar contraseña'
-        
+        # No es necesario definir etiquetas explícitamente si los nombres de los campos son suficientemente descriptivos.
+        # Django generará las etiquetas automáticamente, pero si deseas personalizarlas, puedes dejar esta parte.
         for field_name, field in self.fields.items():
             field.widget.attrs['class'] = 'form-control'
 
     def clean_rut(self):
         rut = self.cleaned_data.get('rut')
-        print(f"Original RUT: {rut}")
-        rut = rut.replace(".", "").replace("-", "").upper()
-        print(f"Cleaned RUT: {rut}")
+        rut = self.limpiar_rut(rut)  # Utilizamos la función de limpieza aquí
 
         if not re.match(r'^\d{7,8}[0-9K]$', rut):
-            print("RUT no tiene el formato correcto.")
             raise forms.ValidationError('El RUT debe tener entre 8 y 9 caracteres sin puntos ni guion.')
 
         if not self.validar_rut(rut):
-            print("RUT no es válido.")
             raise forms.ValidationError('El RUT ingresado no es válido. Asegúrate de usar el formato correcto (XXXXXXXX-X).')
 
         return rut
 
     @staticmethod
-    def validar_rut(rut):
-        rut = rut.upper().replace("-", "").replace(".", "")
-        rut_aux = rut[:-1]
-        dv = rut[-1:]
+    def limpiar_rut(rut):
+        """Función para limpiar el RUT eliminando puntos y guiones"""
+        return rut.replace(".", "").replace("-", "").upper()
 
+    @staticmethod
+    def validar_rut(rut):
+        """Función para validar el RUT utilizando el dígito verificador"""
+        rut_aux = rut[:-1]  # Parte numérica del RUT
+        dv = rut[-1]  # Dígito verificador
+
+        # Validar que el cuerpo del RUT sea numérico y dentro del rango
         if not rut_aux.isdigit() or not (1_000_000 <= int(rut_aux) <= 25_000_000):
             return False
 
@@ -76,7 +72,6 @@ class FormularioAutenticacion(forms.Form):
     rut = forms.CharField(
         max_length=9, 
         required=True, 
-        initial="",  # Asignar temporalmente el RUT
         widget=forms.TextInput(attrs={'class': 'form-control'}),
         help_text='Ingrese el RUT sin puntos ni guion. Ejemplo: 12345678K'
     )
@@ -88,50 +83,44 @@ class FormularioAutenticacion(forms.Form):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
+        # Aseguramos que todos los campos tengan la clase CSS correcta para el estilo.
         for field_name, field in self.fields.items():
             field.widget.attrs['class'] = 'form-control'
 
     def clean_rut(self):
         rut = self.cleaned_data.get('rut')
-        print(f"Original RUT: {rut}")
-        rut = rut.replace(".", "").replace("-", "").upper()
-        print(f"Cleaned RUT: {rut}")
+        rut = self.limpiar_rut(rut)  # Utilizamos la función de limpieza aquí
 
         if not re.match(r'^\d{7,8}[0-9K]$', rut):
-            print("RUT no tiene el formato correcto.")
             raise forms.ValidationError('El RUT debe tener entre 8 y 9 caracteres sin puntos ni guion.')
 
         if not self.validar_rut(rut):
-            print("RUT no es válido.")
             raise forms.ValidationError('El RUT ingresado no es válido. Asegúrate de usar el formato correcto (XXXXXXXX-X).')
 
         return rut
 
     @staticmethod
-    def validar_rut(rut):
-        # Eliminar puntos y guiones
-        rut = rut.replace(".", "").replace("-", "").upper()
-        print(f"RUT limpio: {rut}")
+    def limpiar_rut(rut):
+        """Función para limpiar el RUT eliminando puntos y guiones"""
+        return rut.replace(".", "").replace("-", "").upper()
 
-        # Validar formato general (números + dígito verificador)
-        if not re.match(r'^\d{7,8}[0-9K]$', rut):
-            print("Formato del RUT no es válido")
+    @staticmethod
+    def validar_rut(rut):
+        """Función para validar el RUT utilizando el dígito verificador"""
+        rut_aux = rut[:-1]  # Parte numérica del RUT
+        dv = rut[-1]  # Dígito verificador
+
+        # Validar que el cuerpo del RUT sea numérico y dentro del rango
+        if not rut_aux.isdigit() or not (1_000_000 <= int(rut_aux) <= 25_000_000):
             return False
 
-        cuerpo = rut[:-1]  # Parte numérica del RUT
-        dv = rut[-1]       # Dígito verificador
-        print(f"Cuerpo: {cuerpo}, DV: {dv}")
-
-        # Cálculo del dígito verificador
         suma = 0
         multiplicador = 2
-
-        for digito in reversed(cuerpo):
+        for digito in reversed(rut_aux):
             suma += int(digito) * multiplicador
             multiplicador = 9 if multiplicador == 7 else multiplicador + 1
 
-        resto = suma % 11
-        dv_calculado = 'K' if resto == 10 else str(11 - resto)
-        print(f"DV Calculado: {dv_calculado}")
+        residuo = suma % 11
+        dv_calculado = 'K' if residuo == 10 else str(11 - residuo)
 
         return dv == dv_calculado

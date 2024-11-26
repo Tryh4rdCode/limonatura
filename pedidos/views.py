@@ -18,6 +18,8 @@ import logging
 from django.urls import reverse
 from django.db.models import Sum, F
 
+logger = logging.getLogger(__name__)
+
 def reporte_pedidos(request):
     pedidos = Pedido.objects.all()
     detalles = DetallePedido.objects.all()
@@ -86,8 +88,11 @@ def procesar_pedido(request):
 
     # Almacenar el ID del pedido en la sesión
     request.session['pedido_id'] = pedido.id
-    request.session.modified = True  # Asegúrate de que la sesión se marque como modificada
+    request.session.modified = True
     print(f"Pedido {pedido.id} creado y almacenado en la sesión. ID en la sesión: {request.session.get('pedido_id')}")
+
+    print(f"Sesión antes de crear la transacción: {request.session.items()}")
+
 
     enviar_email(
         pedido=pedido,
@@ -115,9 +120,7 @@ def enviar_email(**kwargs):
     to = emailusuario
 
     send_mail(subject, mensaje_texto, from_email, [to], html_message=message)
-
-
-logger = logging.getLogger(__name__)
+    print(f"Correo enviado a {emailusuario} con asunto '{subject}'")
 
 def create_transaction(request):
     # Inicializar la transacción de Webpay
@@ -128,10 +131,11 @@ def create_transaction(request):
     ))
 
     # Generar valores para la transacción
-    buy_order = str(request.session.get('pedido_id'))
+    buy_order = request.session.get('pedido_id')
+    print(f"ID del pedido en la sesión al crear la transacción: {buy_order}")
     if not buy_order:
         print("Error: Pedido ID no encontrado en la sesión")
-        return JsonResponse({"error": "Pedido no encontrado"}, status=400)
+        return JsonResponse({"error": "Pedido no encontrado. Asegúrate de haber procesado el pedido antes de realizar la transacción."}, status=400)
     
     session_id = request.session.session_key or "default_session_id"
 
@@ -160,7 +164,6 @@ def confirmar_pago(request, token_ws):
     else:
         # Manejar el caso de transacción rechazada
         return redirect('pedidos:fallido')
-
 
 def commit_transaction(request):
     token = request.POST.get("token_ws") or request.GET.get("token_ws")

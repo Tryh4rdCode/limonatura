@@ -16,7 +16,7 @@ def login_view(request):
         if form.is_valid():
             rut = form.cleaned_data.get('rut').replace(".", "").replace("-", "").upper()  # Limpiar el RUT
             password = form.cleaned_data.get('password')
-            user = authenticate(request, rut=rut, password=password)
+            user = authenticate(request, username=rut, password=password)  # Asegúrate de usar 'username=rut'
             if user is not None:
                 login(request, user)
                 return redirect('nsraiz:index')

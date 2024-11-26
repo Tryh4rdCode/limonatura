@@ -108,7 +108,7 @@ STATICFILES_DIRS = [
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 # Configuración del motor de sesiones
-SESSION_ENGINE = 'django.contrib.sessions.backends.db'  # Usar base de datos para sesiones
+SESSION_ENGINE = 'django.contrib.sessions.backends.db'
 SESSION_COOKIE_AGE = 1209600  # Duración de la sesión en segundos (2 semanas)
 SESSION_SAVE_EVERY_REQUEST = True  # Asegura que los cambios en la sesión se guarden
 
