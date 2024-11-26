@@ -1,8 +1,9 @@
-#Limonatura/pedidos/views.py
+# Limonatura/pedidos/views.py
 from django.shortcuts import redirect, get_object_or_404, render
 from django.contrib.auth.decorators import login_required
 from carro.appcarro import Carro
 from .models import Pedido, DetallePedido
+from tienda.models import Fabricante, Producto, Categoria_Tipo
 from django.template.loader import render_to_string
 from django.utils.html import strip_tags
 from django.core.mail import send_mail
@@ -14,14 +15,45 @@ from django.http import JsonResponse
 from django.http import HttpResponseRedirect
 import logging
 from django.urls import reverse
-from django.db.models import Sum
-
-
+from django.db.models import Sum, F
 
 def reporte_pedidos(request):
     pedidos = Pedido.objects.all()
-    total_pedidos = pedidos.aggregate(Sum('detalles__precio'))['detalles__precio__sum']  # Ajusta 'detalles__precio' según tu modelo
-    return render(request, 'pedidos/reporte_pedidos.html', {'total_pedidos': total_pedidos})
+    detalles = DetallePedido.objects.all()
+    fabricantes = Fabricante.objects.all()
+    productos = Producto.objects.all()
+    categorias_tipo = Categoria_Tipo.objects.all()
+
+    # Filtrar por fabricante
+    fabricante_id = request.GET.get('fabricante')
+    if fabricante_id:
+        pedidos = pedidos.filter(detalles__producto__fabricante_id=fabricante_id).distinct()
+        detalles = detalles.filter(producto__fabricante_id=fabricante_id)
+
+    # Filtrar por producto
+    producto_id = request.GET.get('producto')
+    if producto_id:
+        pedidos = pedidos.filter(detalles__producto_id=producto_id).distinct()
+        detalles = detalles.filter(producto_id=producto_id)
+
+    # Filtrar por tipo
+    tipo_id = request.GET.get('tipo')
+    if tipo_id:
+        pedidos = pedidos.filter(detalles__producto__categorias_tipo_id=tipo_id).distinct()
+        detalles = detalles.filter(producto__categorias_tipo_id=tipo_id)
+
+    total_pedidos = pedidos.count()
+    pedidos_por_cliente = pedidos.values('usuario__username').annotate(total=Sum(F('detalles__precio')))
+
+    context = {
+        'total_pedidos': total_pedidos,
+        'pedidos_por_cliente': pedidos_por_cliente,
+        'detalles': detalles,
+        'fabricantes': fabricantes,
+        'productos': productos,
+        'categorias_tipo': categorias_tipo,
+    }
+    return render(request, 'pedidos/reporte_pedidos.html', context)
 
 @login_required(login_url='usuarios/login/')
 def procesar_pedido(request):
@@ -50,6 +82,9 @@ def procesar_pedido(request):
     pedido.save()
 
     carro.limpiar_carro()
+
+    # Almacenar el ID del pedido en la sesión
+    request.session['pedido_id'] = pedido.id
 
     enviar_email(
         pedido=pedido,
@@ -97,7 +132,6 @@ def create_transaction(request):
     carro = Carro(request)
     amount = total_carro = sum(float(item['precio']) for item in carro.carro.values())
 
-
     # Definir la URL de retorno
     return_url = "http://127.0.0.1:8000/pedidos/transaction/commit"
 
@@ -125,6 +159,14 @@ def commit_transaction(request):
         # Limpiar el carrito después de que la transacción se haya completado con éxito
         carro = Carro(request)
         carro.limpiar_carro()
+
+        # Marcar el pedido como finalizado
+        pedido_id = request.session.get('pedido_id')
+        if pedido_id:
+            pedido = Pedido.objects.get(id=pedido_id)
+            pedido.finalizado = True
+            pedido.save()
+            del request.session['pedido_id']
 
     # Redirigir al usuario a la página de confirmación
     return HttpResponseRedirect(reverse('nstienda:confirmar_pedido'))
