@@ -86,4 +86,4 @@ class Producto(models.Model):
 @receiver(pre_save, sender=Producto)
 def set_sku(sender, instance, **kwargs):
     if not instance.sku:
-        instance.sku = f"{instance.categorias_prod.codigo}-{instance.categorias_material.codigo}-{instance.categorias_tipo.codigo}-{instance.id or ''}"
+        instance.sku = f"{instance.categorias_producto.codigo}-{instance.categorias_material.codigo}-{instance.categorias_tipo.codigo}-{instance.id or ''}"

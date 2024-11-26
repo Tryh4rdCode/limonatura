@@ -55,26 +55,26 @@
     <div>
       <h2>Filtrar por categoría</h2>
       <form method="get">
-          <select name="categoria_prod">
+          <select name="categoria_producto">
               <option value="">Todas las categorías de producto</option>
-              {% for categoria in categorias_prod %}
-                  <option value="{{ categoria.id }}" {% if request.GET.categoria_prod == categoria.id|stringformat:"s" %}selected{% endif %}>
+              {% for categoria in categorias_producto %}
+                  <option value="{{ categoria.id }}" {% if request.GET.categoria_producto == categoria.id|stringformat:"s" %}selected{% endif %}>
                       {{ categoria.nombre }}
                   </option>
               {% endfor %}
           </select>
-          <select name="categoria_cole">
+          <select name="categoria_tipo">
               <option value="">Todas las categorías de colegio</option>
-              {% for categoria in categorias_cole %}
-                  <option value="{{ categoria.id }}" {% if request.GET.categoria_cole == categoria.id|stringformat:"s" %}selected{% endif %}>
+              {% for categoria in categorias_tipo %}
+                  <option value="{{ categoria.id }}" {% if request.GET.categoria_tipo == categoria.id|stringformat:"s" %}selected{% endif %}>
                       {{ categoria.nombre }}
                   </option>
               {% endfor %}
           </select>
           <select name="categoria_sexo">
               <option value="">Todas las categorías de sexo</option>
-              {% for categoria in categorias_sexo %}
-                  <option value="{{ categoria.id }}" {% if request.GET.categoria_sexo == categoria.id|stringformat:"s" %}selected{% endif %}>
+              {% for categoria in categorias_material %}
+                  <option value="{{ categoria.id }}" {% if request.GET.categoria_material == categoria.id|stringformat:"s" %}selected{% endif %}>
                       {{ categoria.nombre }}
                   </option>
               {% endfor %}

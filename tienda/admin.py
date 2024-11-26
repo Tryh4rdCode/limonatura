@@ -1,11 +1,11 @@
 from django.contrib import admin
-from tienda.models import Producto, Categoria_Tipo, Categoria_Producto, Categoria_Material
+from .models import Producto, Categoria_Tipo, Categoria_Producto, Categoria_Material
 
 class ProductoAdmin(admin.ModelAdmin):
     readonly_fields = ('creado', 'actualizado')
     list_display = ('nombre', 'precio', 'stock', 'disponibilidad', 'fabricante')
     search_fields = ('nombre', 'fabricante__nombre')
-    list_filter = ('disponibilidad', 'categorias_prod', 'categorias_tipo', 'categorias_material')
+    list_filter = ('disponibilidad', 'categorias_producto', 'categorias_tipo', 'categorias_material')
     ordering = ('nombre',)
 
 class Categoria_TipoAdmin(admin.ModelAdmin):
