@@ -64,15 +64,15 @@
               {% endfor %}
           </select>
           <select name="categoria_tipo">
-              <option value="">Todas las categorías de colegio</option>
+              <option value="">Todas las categorías de tipo</option>
               {% for categoria in categorias_tipo %}
                   <option value="{{ categoria.id }}" {% if request.GET.categoria_tipo == categoria.id|stringformat:"s" %}selected{% endif %}>
                       {{ categoria.nombre }}
                   </option>
               {% endfor %}
           </select>
-          <select name="categoria_sexo">
-              <option value="">Todas las categorías de sexo</option>
+          <select name="categoria_material">
+              <option value="">Todas las categorías de material</option>
               {% for categoria in categorias_material %}
                   <option value="{{ categoria.id }}" {% if request.GET.categoria_material == categoria.id|stringformat:"s" %}selected{% endif %}>
                       {{ categoria.nombre }}
