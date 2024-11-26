@@ -16,7 +16,7 @@ class Fabricante(models.Model):
     def __str__(self):
         return self.nombre
 
-class Categoria_Produ(models.Model):
+class Categoria_Producto(models.Model):
     nombre = models.CharField(max_length=50)
     descripcion = models.CharField(max_length=100)
     codigo = models.CharField(max_length=10, unique=True)
@@ -30,7 +30,7 @@ class Categoria_Produ(models.Model):
     def __str__(self):
         return self.nombre
 
-class Categoria_Coleg(models.Model):
+class Categoria_Tipo(models.Model):
     nombre = models.CharField(max_length=50)
     descripcion = models.CharField(max_length=100)
     codigo = models.CharField(max_length=10, unique=True)
@@ -38,13 +38,13 @@ class Categoria_Coleg(models.Model):
     actualizado = models.DateTimeField(auto_now=True)
 
     class Meta:
-        verbose_name = 'categoria_cole'
-        verbose_name_plural = 'categorias_cole'
+        verbose_name = 'categoria_tipo'
+        verbose_name_plural = 'categorias_tipo'
 
     def __str__(self):
         return self.nombre
 
-class Categoria_Sexo(models.Model):
+class Categoria_Material(models.Model):
     nombre = models.CharField(max_length=50)
     descripcion = models.CharField(max_length=100)
     codigo = models.CharField(max_length=10, unique=True)
@@ -52,8 +52,8 @@ class Categoria_Sexo(models.Model):
     actualizado = models.DateTimeField(auto_now=True)
 
     class Meta:
-        verbose_name = 'categoria_sexo'
-        verbose_name_plural = 'categorias_sexo'
+        verbose_name = 'categoria_material'
+        verbose_name_plural = 'categorias_material'
 
     def __str__(self):
         return self.nombre
@@ -61,9 +61,9 @@ class Categoria_Sexo(models.Model):
 class Producto(models.Model):
     nombre = models.CharField(max_length=100)
     precio = models.DecimalField(max_digits=10, decimal_places=2)
-    categorias_prod = models.ForeignKey(Categoria_Produ, on_delete=models.CASCADE, default=1)
-    categorias_cole = models.ForeignKey(Categoria_Coleg, on_delete=models.CASCADE, default=1)
-    categorias_sexo = models.ForeignKey(Categoria_Sexo, on_delete=models.CASCADE, default=1)
+    categorias_prod = models.ForeignKey(Categoria_Producto, on_delete=models.CASCADE, default=1)
+    categorias_tipo = models.ForeignKey(Categoria_Tipo, on_delete=models.CASCADE, default=1)
+    categorias_material = models.ForeignKey(Categoria_Material, on_delete=models.CASCADE, default=1)
     imagen = models.ImageField(upload_to='productos', null=True, blank=True)
     stock = models.PositiveIntegerField(default=0)
     disponibilidad = models.BooleanField(default=True)
@@ -87,4 +87,4 @@ class Producto(models.Model):
 @receiver(pre_save, sender=Producto)
 def set_sku(sender, instance, **kwargs):
     if not instance.sku:
-        instance.sku = f"{instance.categorias_prod.codigo}-{instance.categorias_sexo.codigo}-{instance.categorias_cole.codigo}-{instance.id or ''}"
+        instance.sku = f"{instance.categorias_prod.codigo}-{instance.categorias_material.codigo}-{instance.categorias_tipo.codigo}-{instance.id or ''}"
