@@ -31,7 +31,7 @@
 
 /* Estilo de las tarjetas de productos */
 .card {
-    margin: 20px 20px;
+    margin: 20px; /* Ajusta este valor para agregar margen alrededor de las tarjetas */
     width: 100%;
 }
 
@@ -55,4 +55,3 @@
 .carro {
     margin-top: 20px;
 }
-

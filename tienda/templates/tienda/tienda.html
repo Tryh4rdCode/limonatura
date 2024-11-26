@@ -22,7 +22,7 @@
     <div class="row">
       {% for producto in productos %}
         <div class="col-md-3">
-          <div class="card h-100" style="width: 100%; margin: 20px 20px; display: flex; flex-direction: column;">
+          <div class="card h-100">
             {% if producto.imagen %}
               <img src="{{ producto.imagen.url }}" class="card-img-top" alt="{{ producto.nombre }}">
             {% else %}
