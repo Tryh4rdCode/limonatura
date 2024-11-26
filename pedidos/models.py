@@ -25,10 +25,13 @@ class Pedido(models.Model):
         ordering = ['id']
 
     @property
-    def calcular_total(self):
-        return self.detalles.aggregate(
-            total=Sum(F('producto__precio') * F('cantidad'), output_field=FloatField())
+    def recalcular_total(self):
+        total = self.detalles.aggregate(
+            total=Sum(F('precio') * F('cantidad'), output_field=FloatField())
         )['total'] or 0.0
+        self.total = total
+        self.save()
+        return total
 
 
 class DetallePedido(models.Model):

@@ -79,7 +79,8 @@ def procesar_pedido(request):
         detalle_pedido.append(detalle)
 
     # Calcular el total del pedido
-    pedido.total = sum(item.precio for item in detalle_pedido)
+    total_pedido = sum(detalle.precio for detalle in detalle_pedido)
+    pedido.total = total_pedido
     pedido.save()
 
     # Almacenar el ID del pedido en la sesión
