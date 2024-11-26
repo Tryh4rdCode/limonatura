@@ -38,6 +38,7 @@ class DetallePedido(models.Model):
     cantidad = models.PositiveIntegerField(default=1)
     precio = models.DecimalField(max_digits=10, decimal_places=2)
     precio_unitario = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
+    finalizado = models.BooleanField(default=False)  # Campo para indicar si el pedido está finalizado
     comision = models.DecimalField(max_digits=10, decimal_places=2, editable=False)
     total_fabricante = models.DecimalField(max_digits=10, decimal_places=2, editable=False)
     created_at = models.DateTimeField(default=timezone.now)

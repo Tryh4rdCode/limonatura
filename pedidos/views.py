@@ -56,34 +56,35 @@ def reporte_pedidos(request):
     }
     return render(request, 'pedidos/reporte_pedidos.html', context)
 
-@login_required
+@login_required(login_url='usuarios/login/')
 def procesar_pedido(request):
+    Producto = apps.get_model('tienda', 'Producto')
+    pedido = Pedido.objects.create(usuario=request.user)
     carro = Carro(request)
-    usuario = request.user
+    detalle_pedido = []
 
-    # Crear pedido
-    pedido = Pedido.objects.create(usuario=usuario)
-
-    # Agregar detalles al pedido
-    for key, value in request.session.get('carro', {}).items():
-        producto = Producto.objects.get(id=value['producto_id'])
-        DetallePedido.objects.create(
-            usuario=usuario,
+    for key, value in carro.carro.items():
+        producto = get_object_or_404(Producto, id=key)
+        detalle = DetallePedido(
             producto=producto,
-            pedido=pedido,
             cantidad=value['cantidad'],
-            precio=Decimal(value['precio']),
+            usuario=request.user,
+            pedido=pedido,
+            precio_unitario=producto.precio,
+            precio=value['cantidad'] * producto.precio,
+            comision=0.0,
+            total_fabricante=0.0
         )
+        detalle.save()
+        detalle_pedido.append(detalle)
 
-    # Lógica para procesar el pago (por ejemplo, usando Transbank)
-    # Asumiendo que el pago es exitoso:
-    pedido.finalizado = True
+    # Calcular el total del pedido
+    pedido.total = sum(item.precio for item in detalle_pedido)
     pedido.save()
 
-    # Vaciar el carro
-    request.session['carro'] = {}
-    return redirect('pedidos:detalle', pedido.id)
-
+    # Almacenar el ID del pedido en la sesión
+    request.session['pedido_id'] = pedido.id
+    print(f"Pedido {pedido.id} creado y almacenado en la sesión.")
 
     enviar_email(
         pedido=pedido,
@@ -172,10 +173,16 @@ def commit_transaction(request):
         # Marcar el pedido como finalizado
         pedido_id = request.session.get('pedido_id')
         if pedido_id:
-            pedido = Pedido.objects.get(id=pedido_id)
-            pedido.finalizado = True
-            pedido.save()
-            del request.session['pedido_id']
+            try:
+                pedido = Pedido.objects.get(id=pedido_id)
+                pedido.finalizado = True
+                pedido.save()
+                del request.session['pedido_id']
+                print(f"Pedido {pedido_id} finalizado correctamente.")
+            except Pedido.DoesNotExist:
+                print(f"Pedido {pedido_id} no encontrado.")
+        else:
+            print("No se encontró el ID del pedido en la sesión.")
 
     # Redirigir al usuario a la página de confirmación
     return HttpResponseRedirect(reverse('nstienda:confirmar_pedido'))
