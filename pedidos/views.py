@@ -86,7 +86,8 @@ def procesar_pedido(request):
 
     # Almacenar el ID del pedido en la sesión
     request.session['pedido_id'] = pedido.id
-    print(f"Pedido {pedido.id} creado y almacenado en la sesión.")
+    request.session.modified = True  # Asegúrate de que la sesión se marque como modificada
+    print(f"Pedido {pedido.id} creado y almacenado en la sesión. ID en la sesión: {request.session.get('pedido_id')}")
 
     enviar_email(
         pedido=pedido,
@@ -127,13 +128,17 @@ def create_transaction(request):
     ))
 
     # Generar valores para la transacción
-    buy_order = "12345"  # Puedes generar esto dinámicamente
+    buy_order = str(request.session.get('pedido_id'))
+    if not buy_order:
+        print("Error: Pedido ID no encontrado en la sesión")
+        return JsonResponse({"error": "Pedido no encontrado"}, status=400)
+    
     session_id = request.session.session_key or "default_session_id"
 
     # Obtener el total del carro
     carro = Carro(request)
-    amount = total_carro = sum(float(item['precio']) for item in carro.carro.values())
-    print(f"Total del carro: {total_carro}")
+    amount = sum(float(item['precio']) for item in carro.carro.values())
+    print(f"Total del carro: {amount}")
 
     # Definir la URL de retorno
     return_url = "http://127.0.0.1:8000/pedidos/transaction/commit"
@@ -180,6 +185,7 @@ def commit_transaction(request):
 
         # Marcar el pedido como finalizado
         pedido_id = request.session.get('pedido_id')
+        print(f"ID del pedido en la sesión: {pedido_id}")
         if pedido_id:
             try:
                 pedido = Pedido.objects.get(id=pedido_id)
