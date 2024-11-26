@@ -76,7 +76,7 @@ class FormularioAutenticacion(forms.Form):
     rut = forms.CharField(
         max_length=9, 
         required=True, 
-        initial="15387641K",  # Asignar temporalmente el RUT
+        initial="",  # Asignar temporalmente el RUT
         widget=forms.TextInput(attrs={'class': 'form-control'}),
         help_text='Ingrese el RUT sin puntos ni guion. Ejemplo: 12345678K'
     )
