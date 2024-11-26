@@ -1,5 +1,5 @@
 #Limonatura/pedidos/views.py
-from django.shortcuts import redirect, get_object_or_404
+from django.shortcuts import redirect, get_object_or_404, render
 from django.contrib.auth.decorators import login_required
 from carro.appcarro import Carro
 from .models import Pedido, DetallePedido
@@ -14,8 +14,14 @@ from django.http import JsonResponse
 from django.http import HttpResponseRedirect
 import logging
 from django.urls import reverse
+from django.db.models import Sum
 
 
+
+def reporte_pedidos(request):
+    pedidos = Pedido.objects.all()
+    total_pedidos = pedidos.aggregate(Sum('detalles__precio'))['detalles__precio__sum']  # Ajusta 'detalles__precio' según tu modelo
+    return render(request, 'pedidos/reporte_pedidos.html', {'total_pedidos': total_pedidos})
 
 @login_required(login_url='usuarios/login/')
 def procesar_pedido(request):
