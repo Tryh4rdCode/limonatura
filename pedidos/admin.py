@@ -9,8 +9,8 @@ class DetallePedidoInline(admin.TabularInline):
     readonly_fields = ('comision', 'total_fabricante')
 
 class PedidoAdmin(admin.ModelAdmin):
-    inlines = [DetallePedidoInline]
-    list_display = ('id', 'usuario', 'fecha', 'total', 'get_comision_total')
+    list_display = ('id', 'usuario', 'fecha', 'finalizado', 'total')
+    list_filter = ('finalizado',)
 
     def get_queryset(self, request):
         qs = super().get_queryset(request)

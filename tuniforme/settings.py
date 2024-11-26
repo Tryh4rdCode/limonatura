@@ -109,6 +109,8 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 # Configuración del motor de sesiones
 SESSION_ENGINE = 'django.contrib.sessions.backends.db'
+SESSION_COOKIE_AGE = 1209600  # Tiempo de vida de la sesión (en segundos)
+
 
 # URLs de inicio y cierre de sesión
 LOGIN_URL = 'nsusuario:login'

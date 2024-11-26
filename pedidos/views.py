@@ -1,4 +1,5 @@
 # Limonatura/pedidos/views.py
+from decimal import Decimal
 from django.shortcuts import redirect, get_object_or_404, render
 from django.contrib.auth.decorators import login_required
 from carro.appcarro import Carro
@@ -55,34 +56,34 @@ def reporte_pedidos(request):
     }
     return render(request, 'pedidos/reporte_pedidos.html', context)
 
-@login_required(login_url='usuarios/login/')
+@login_required
 def procesar_pedido(request):
-    Producto = apps.get_model('tienda', 'Producto')
-    pedido = Pedido.objects.create(usuario=request.user)
     carro = Carro(request)
-    detalle_pedido = []
+    usuario = request.user
 
-    for key, value in carro.carro.items():
-        producto = get_object_or_404(Producto, id=key)
-        detalle = DetallePedido(
+    # Crear pedido
+    pedido = Pedido.objects.create(usuario=usuario)
+
+    # Agregar detalles al pedido
+    for key, value in request.session.get('carro', {}).items():
+        producto = Producto.objects.get(id=value['producto_id'])
+        DetallePedido.objects.create(
+            usuario=usuario,
             producto=producto,
-            cantidad=value['cantidad'],
-            usuario=request.user,
             pedido=pedido,
-            precio_unitario=producto.precio,
-            precio=value['cantidad'] * producto.precio,
-            comision=0.0,
-            total_fabricante=0.0
+            cantidad=value['cantidad'],
+            precio=Decimal(value['precio']),
         )
-        detalle.save()
-        detalle_pedido.append(detalle)
 
-    # Calcular el total del pedido
-    pedido.total = sum(item.precio for item in detalle_pedido)
+    # Lógica para procesar el pago (por ejemplo, usando Transbank)
+    # Asumiendo que el pago es exitoso:
+    pedido.finalizado = True
     pedido.save()
 
-    # Almacenar el ID del pedido en la sesión
-    request.session['pedido_id'] = pedido.id
+    # Vaciar el carro
+    request.session['carro'] = {}
+    return redirect('pedidos:detalle', pedido.id)
+
 
     enviar_email(
         pedido=pedido,
@@ -137,6 +138,17 @@ def create_transaction(request):
 
     # Redirigir al usuario a la URL de pago
     return HttpResponseRedirect(f"{response['url']}?token_ws={response['token']}")
+
+def confirmar_pago(request, token_ws):
+    transaction = Transaction().commit(token_ws)
+    if transaction['response_code'] == 0:  # Pago exitoso
+        pedido = Pedido.objects.get(id=transaction['buy_order'])
+        pedido.finalizado = True
+        pedido.save()
+        return redirect('pedidos:detalle', pedido.id)
+    else:
+        # Manejar el caso de transacción rechazada
+        return redirect('pedidos:fallido')
 
 
 def commit_transaction(request):

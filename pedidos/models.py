@@ -1,3 +1,4 @@
+#Limonatur/pedidos/models.py
 from django.db import models
 from django.contrib.auth import get_user_model
 from tienda.models import Producto
@@ -10,7 +11,7 @@ User = get_user_model()
 class Pedido(models.Model):
     usuario = models.ForeignKey(User, on_delete=models.CASCADE)
     fecha = models.DateTimeField(default=timezone.now)
-    finalizado = models.BooleanField(default=False)  # Campo para indicar si el pedido está finalizado
+    finalizado = models.BooleanField(default=False)
     created_at = models.DateTimeField(default=timezone.now)
     total = models.DecimalField(max_digits=10, decimal_places=2, default=0.0)
 
@@ -24,10 +25,11 @@ class Pedido(models.Model):
         ordering = ['id']
 
     @property
-    def total(self):
+    def calcular_total(self):
         return self.detalles.aggregate(
             total=Sum(F('producto__precio') * F('cantidad'), output_field=FloatField())
         )['total'] or 0.0
+
 
 class DetallePedido(models.Model):
     usuario = models.ForeignKey(User, on_delete=models.CASCADE)
