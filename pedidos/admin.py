@@ -1,8 +1,8 @@
 # pedidos/admin.py en la aplicación pedidos
 from django.contrib import admin
 from .models import Pedido, DetallePedido
-from tienda.models import Fabricante, Producto, Categoria_Tipo, Categoria_Producto, Categoria_Material
-from tienda.admin import ProductoAdmin, Categoria_TipoAdmin, Categoria_ProductoAdmin, Categoria_MaterialAdmin  # Importar ProductoAdmin
+from tienda.models import Fabricante, Producto, Categoria_Tipo, Categoria_Temporada, Categoria_Material
+from tienda.admin import ProductoAdmin, Categoria_TipoAdmin, Categoria_TemporadaAdmin, Categoria_MaterialAdmin  # Importar ProductoAdmin
 
 class DetallePedidoInline(admin.TabularInline):
     model = DetallePedido

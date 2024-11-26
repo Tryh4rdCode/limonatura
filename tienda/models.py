@@ -15,7 +15,7 @@ class Fabricante(models.Model):
     def __str__(self):
         return self.nombre
 
-class Categoria_Producto(models.Model):
+class Categoria_Temporada(models.Model):
     nombre = models.CharField(max_length=50)
     descripcion = models.CharField(max_length=100)
     codigo = models.CharField(max_length=10, unique=True)
@@ -23,8 +23,8 @@ class Categoria_Producto(models.Model):
     actualizado = models.DateTimeField(auto_now_add=True)
 
     class Meta:
-        verbose_name = 'categoria_prod'
-        verbose_name_plural = 'categorias_prod'
+        verbose_name = 'categoria_temporada'
+        verbose_name_plural = 'categorias_temporada'
 
     def __str__(self):
         return self.nombre
@@ -60,7 +60,7 @@ class Categoria_Material(models.Model):
 class Producto(models.Model):
     nombre = models.CharField(max_length=100)
     precio = models.DecimalField(max_digits=10, decimal_places=2)
-    categorias_prod = models.ForeignKey(Categoria_Producto, on_delete=models.CASCADE, default=1)
+    categorias_temporada = models.ForeignKey(Categoria_Temporada, on_delete=models.CASCADE, default=1)
     categorias_tipo = models.ForeignKey(Categoria_Tipo, on_delete=models.CASCADE, default=1)
     categorias_material = models.ForeignKey(Categoria_Material, on_delete=models.CASCADE, default=1)
     imagen = models.ImageField(upload_to='productos', null=True, blank=True)
@@ -86,4 +86,4 @@ class Producto(models.Model):
 @receiver(pre_save, sender=Producto)
 def set_sku(sender, instance, **kwargs):
     if not instance.sku:
-        instance.sku = f"{instance.categorias_prod.codigo}-{instance.categorias_material.codigo}-{instance.categorias_tipo.codigo}-{instance.id or ''}"
+        instance.sku = f"{instance.categorias_temporada.codigo}-{instance.categorias_material.codigo}-{instance.categorias_tipo.codigo}-{instance.id or ''}"

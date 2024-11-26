@@ -55,10 +55,10 @@
     <div>
       <h2>Filtrar por categoría</h2>
       <form method="get">
-          <select name="categoria_producto">
-              <option value="">Todas las categorías de producto</option>
-              {% for categoria in categorias_producto %}
-                  <option value="{{ categoria.id }}" {% if request.GET.categoria_producto == categoria.id|stringformat:"s" %}selected{% endif %}>
+          <select name="categoria_temporada">
+              <option value="">Todas las categorías de temporada</option>
+              {% for categoria in categorias_temporada %}
+                  <option value="{{ categoria.id }}" {% if request.GET.categoria_temporada == categoria.id|stringformat:"s" %}selected{% endif %}>
                       {{ categoria.nombre }}
                   </option>
               {% endfor %}
