@@ -81,8 +81,6 @@ def procesar_pedido(request):
     pedido.total = sum(item.precio for item in detalle_pedido)
     pedido.save()
 
-    carro.limpiar_carro()
-
     # Almacenar el ID del pedido en la sesión
     request.session['pedido_id'] = pedido.id
 
@@ -94,7 +92,6 @@ def procesar_pedido(request):
     )
 
     return redirect('nstienda:confirmar_pedido')
-
 
 def enviar_email(**kwargs):
     pedido = kwargs['pedido']
