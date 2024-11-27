@@ -48,6 +48,32 @@ def reporte_pedidos(request):
     total_pedidos = pedidos.count()
     pedidos_por_cliente = pedidos.values('usuario__username').annotate(total=Sum(F('detalles__precio')))
 
+# Crear un pedido y guardarlo en la sesión
+def crear_pedido(request):
+    if request.user.is_authenticated:
+        # Crear el pedido
+        pedido = Pedido.objects.create(usuario=request.user)
+        
+        # Almacenar el ID del pedido en la sesión
+        request.session['pedido_id'] = pedido.id
+
+        # Otras operaciones
+        return redirect('carro:fin_pedido')
+    else:
+        # Manejo para cuando el usuario no está autenticado
+        return redirect('login')
+
+def obtener_pedido(request):
+    pedido_id = request.session.get('pedido_id')
+
+    if pedido_id:
+        pedido = Pedido.objects.get(id=pedido_id)
+        return render(request, 'pedido_detalle.html', {'pedido': pedido})
+    else:
+        # Manejo para cuando el ID del pedido no está en la sesión
+        raise ValueError("Pedido ID no encontrado en la sesión")
+
+
     context = {
         'total_pedidos': total_pedidos,
         'pedidos_por_cliente': pedidos_por_cliente,
