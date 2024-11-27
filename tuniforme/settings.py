@@ -32,7 +32,7 @@ INSTALLED_APPS = [
 # Middleware
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',  # Seguridad
-    'django.contrib.sessions.middleware.SessionMiddleware',  # Sesiones
+    'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',  # Común
     'django.middleware.csrf.CsrfViewMiddleware',  # CSRF
     'django.contrib.auth.middleware.AuthenticationMiddleware',  # Autenticación
@@ -109,7 +109,9 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 # Configuración del motor de sesiones
 # settings.py
-SESSION_ENGINE = 'django.contrib.sessions.backends.db'  # Usa la base de datos para almacenar sesiones
+
+SESSION_ENGINE = "django.contrib.sessions.backends.db"
+SESSION_COOKIE_SECURE = False  # Para desarrollo; asegúrate de usar True en producción con HTTPS
 SESSION_COOKIE_HTTPONLY = True
 SESSION_EXPIRE_AT_BROWSER_CLOSE = False
 SESSION_COOKIE_AGE = 1209600  # 2 semanas

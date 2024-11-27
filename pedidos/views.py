@@ -60,10 +60,18 @@ def reporte_pedidos(request):
 
 @login_required(login_url='usuarios/login/')
 def procesar_pedido(request):
+    if not request.user.is_authenticated:
+        print("El usuario no está autenticado")
+        return redirect('usuarios/login/')
+    
     Producto = apps.get_model('tienda', 'Producto')
     pedido = Pedido.objects.create(usuario=request.user)
     carro = Carro(request)
     detalle_pedido = []
+
+    if not carro.carro:
+        print("El carrito está vacío")
+        return redirect('nstienda:carrito')  # Redirigir al carrito o manejar el caso
 
     for key, value in carro.carro.items():
         producto = get_object_or_404(Producto, id=key)
@@ -79,16 +87,20 @@ def procesar_pedido(request):
         )
         detalle.save()
         detalle_pedido.append(detalle)
+        print(f"Detalle de pedido guardado: {detalle}")
 
     # Calcular el total del pedido
     pedido.total = sum(item.precio for item in detalle_pedido)
     pedido.save()
+    print(f"Total del pedido calculado y guardado: {pedido.total}")
 
     # Almacenar el ID del pedido en la sesión
     request.session['pedido_id'] = pedido.id
-    request.session.modified = True  # Forzar la actualización de la sesión
-
+    request.session.modified = True  # Forzar que Django guarde cambios en la sesión
+    request.session.save()  # Forzar el guardado de la sesión
     print(f"Pedido {pedido.id} creado y almacenado en la sesión. ID en la sesión: {request.session.get('pedido_id')}")
+    print(f"Contenido de la sesión después de guardar el pedido: {request.session.items()}")
+
 
     enviar_email(
         pedido=pedido,
@@ -98,8 +110,8 @@ def procesar_pedido(request):
     )
     print("Correo de confirmación enviado")
 
-    return redirect('nstienda:confirmar_pedido')
-
+    # Redirigir a la vista create_transaction
+    return redirect('pedidos:create_transaction')
 
 def enviar_email(**kwargs):
     pedido = kwargs['pedido']
@@ -120,6 +132,9 @@ def enviar_email(**kwargs):
     print(f"Correo enviado a {emailusuario} con asunto '{subject}'")
 
 def create_transaction(request):
+    print(f"Sesión actual: {request.session.items()}")
+    print(f"Claves de la sesión: {request.session.keys()}")
+
     # Inicializar la transacción de Webpay
     transaction = Transaction(WebpayOptions(
         commerce_code="597055555532",
@@ -127,17 +142,20 @@ def create_transaction(request):
         integration_type=IntegrationType.TEST
     ))
 
-    # Verificar si el pedido está en la sesión
+    # Generar valores para la transacción
     buy_order = request.session.get('pedido_id')
+    print(f"ID del pedido en la sesión al crear la transacción: {buy_order}")
     if not buy_order:
-        print("Error: Pedido ID no encontrado en la sesión")
-        return JsonResponse({"error": "Pedido no encontrado"}, status=400)
+        print("Error crítico: Pedido ID no encontrado en la sesión")
+        print(f"Sesión actual: {request.session.items()}")
+        return JsonResponse({"error": "No se encontró un pedido activo. Por favor, inicia el proceso nuevamente."}, status=400)
     
     session_id = request.session.session_key or "default_session_id"
 
     # Obtener el total del carro
     carro = Carro(request)
     amount = sum(float(item['precio']) for item in carro.carro.values())
+    print(f"Total del carro: {amount}")
 
     # Definir la URL de retorno
     return_url = "http://127.0.0.1:8000/pedidos/transaction/commit"
@@ -152,7 +170,6 @@ def create_transaction(request):
 
     # Redirigir al usuario a la URL de pago
     return HttpResponseRedirect(f"{response['url']}?token_ws={response['token']}")
-
 
 def confirmar_pago(request, token_ws):
     transaction = Transaction().commit(token_ws)
