@@ -79,20 +79,16 @@ def procesar_pedido(request):
         )
         detalle.save()
         detalle_pedido.append(detalle)
-        print(f"Detalle de pedido guardado: {detalle}")
 
     # Calcular el total del pedido
     pedido.total = sum(item.precio for item in detalle_pedido)
     pedido.save()
-    print(f"Total del pedido calculado y guardado: {pedido.total}")
 
     # Almacenar el ID del pedido en la sesión
     request.session['pedido_id'] = pedido.id
-    request.session.modified = True
+    request.session.modified = True  # Forzar la actualización de la sesión
+
     print(f"Pedido {pedido.id} creado y almacenado en la sesión. ID en la sesión: {request.session.get('pedido_id')}")
-
-    print(f"Sesión antes de crear la transacción: {request.session.items()}")
-
 
     enviar_email(
         pedido=pedido,
@@ -103,6 +99,7 @@ def procesar_pedido(request):
     print("Correo de confirmación enviado")
 
     return redirect('nstienda:confirmar_pedido')
+
 
 def enviar_email(**kwargs):
     pedido = kwargs['pedido']
@@ -130,29 +127,32 @@ def create_transaction(request):
         integration_type=IntegrationType.TEST
     ))
 
-    # Generar valores para la transacción
+    # Verificar si el pedido está en la sesión
     buy_order = request.session.get('pedido_id')
-    print(f"ID del pedido en la sesión al crear la transacción: {buy_order}")
     if not buy_order:
         print("Error: Pedido ID no encontrado en la sesión")
-        return JsonResponse({"error": "Pedido no encontrado. Asegúrate de haber procesado el pedido antes de realizar la transacción."}, status=400)
+        return JsonResponse({"error": "Pedido no encontrado"}, status=400)
     
     session_id = request.session.session_key or "default_session_id"
 
     # Obtener el total del carro
     carro = Carro(request)
     amount = sum(float(item['precio']) for item in carro.carro.values())
-    print(f"Total del carro: {amount}")
 
     # Definir la URL de retorno
     return_url = "http://127.0.0.1:8000/pedidos/transaction/commit"
 
     # Crear la transacción con Webpay
-    response = transaction.create(buy_order, session_id, amount, return_url)
-    print(f"Transacción creada: {response}")
+    try:
+        response = transaction.create(buy_order, session_id, amount, return_url)
+        print(f"Transacción creada: {response}")
+    except Exception as e:
+        print(f"Error al crear la transacción: {e}")
+        return JsonResponse({"error": "Error al crear la transacción"}, status=500)
 
     # Redirigir al usuario a la URL de pago
     return HttpResponseRedirect(f"{response['url']}?token_ws={response['token']}")
+
 
 def confirmar_pago(request, token_ws):
     transaction = Transaction().commit(token_ws)

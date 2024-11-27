@@ -16,18 +16,24 @@ def login_view(request):
         if form.is_valid():
             rut = form.cleaned_data.get('rut').replace(".", "").replace("-", "").upper()  # Limpiar el RUT
             password = form.cleaned_data.get('password')
+            print(f"Intentando autenticar usuario con RUT: {rut}")
             user = authenticate(request, username=rut, password=password)  # Asegúrate de usar 'username=rut'
             if user is not None:
                 login(request, user)
+                print(f"Usuario autenticado: {user.username}")
                 return redirect('nsraiz:index')
             else:
+                print("Autenticación fallida: RUT o contraseña incorrectos")
                 form.add_error(None, 'RUT o contraseña incorrectos')
+        else:
+            print("Formulario de autenticación no válido")
     else:
         form = FormularioAutenticacion()
     return render(request, 'usuario/login.html', {'form': form})
 
 
 def logout_view(request):
+    print(f"Cerrando sesión para el usuario: {request.user.username}")
     logout(request)
     return redirect('nsraiz:index')
 
@@ -41,8 +47,10 @@ def registro_view(request):
                 messages.success(request, 'Usuario registrado exitosamente')
                 return redirect('nsraiz:index')
             except IntegrityError as e:
+                print(f"Error al registrar el usuario: {e}")
                 form.add_error(None, f'Error al registrar el usuario: {e}')
         else:
+            print("Formulario de registro no válido")
             form.add_error(None, 'Formulario no válido')
     else:
         form = FormularioCreacionUsuario()
@@ -67,6 +75,7 @@ def actualizar_perfil(request):
         user.region = request.POST.get('region', user.region)
         user.comuna = request.POST.get('comuna', user.comuna)
         user.save()
+        print(f"Perfil actualizado para el usuario: {user.username}")
         messages.success(request, 'Perfil actualizado exitosamente')
         return redirect('nsusuario:perfil')
     return render(request, 'usuario/perfil.html')
@@ -76,6 +85,7 @@ def eliminar_cuenta(request):
     if request.method == 'POST':
         user = request.user
         user.delete()
+        print(f"Cuenta eliminada para el usuario: {user.username}")
         messages.success(request, 'Cuenta eliminada exitosamente')
         return redirect('nsraiz:index')
     return render(request, 'usuario/perfil.html')

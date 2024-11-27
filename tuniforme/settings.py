@@ -108,9 +108,12 @@ STATICFILES_DIRS = [
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 # Configuración del motor de sesiones
-SESSION_ENGINE = 'django.contrib.sessions.backends.db'
-SESSION_COOKIE_AGE = 1209600  # Duración de la sesión en segundos (2 semanas)
-SESSION_SAVE_EVERY_REQUEST = True  # Asegura que los cambios en la sesión se guarden
+# settings.py
+SESSION_ENGINE = 'django.contrib.sessions.backends.db'  # Usa la base de datos para almacenar sesiones
+SESSION_COOKIE_HTTPONLY = True
+SESSION_EXPIRE_AT_BROWSER_CLOSE = False
+SESSION_COOKIE_AGE = 1209600  # 2 semanas
+
 
 # URLs de inicio y cierre de sesión
 LOGIN_URL = 'nsusuario:login'
