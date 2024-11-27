@@ -8,9 +8,6 @@ from decimal import Decimal
 from django.db.models.signals import pre_save
 from django.dispatch import receiver
 
-
-
-
 User = get_user_model()
 
 class Pedido(models.Model):
