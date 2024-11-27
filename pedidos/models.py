@@ -5,6 +5,11 @@ from tienda.models import Producto
 from django.db.models import F, Sum, FloatField
 from django.utils import timezone
 from decimal import Decimal
+from django.db.models.signals import pre_save
+from django.dispatch import receiver
+
+
+
 
 User = get_user_model()
 
@@ -14,6 +19,16 @@ class Pedido(models.Model):
     finalizado = models.BooleanField(default=False)
     created_at = models.DateTimeField(default=timezone.now)
     total = models.DecimalField(max_digits=10, decimal_places=2, default=0.0)
+
+    def save(self, *args, **kwargs):
+        # Asegurarse de que el id no sea None antes de guardar
+        if self.id is None:
+            # No se permite el guardado si no se asigna un id
+            raise ValueError("El ID del pedido no puede ser None antes de guardar.")
+        super().save(*args, **kwargs)
+
+
+
 
     def __str__(self):
         return f'Pedido {self.id} - {self.usuario}'
@@ -33,6 +48,10 @@ class Pedido(models.Model):
         self.save()
         return total
 
+@receiver(pre_save, sender=Pedido)
+def asegurar_id_no_none(sender, instance, **kwargs):
+    if instance.id is None:
+        raise ValueError("El ID del pedido no puede ser None antes de guardar.")
 
 class DetallePedido(models.Model):
     usuario = models.ForeignKey(User, on_delete=models.CASCADE)
